@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="160" width="160" version="1.0" style=""><rect id="backgroundrect" width="100%" height="100%" x="0" y="0" fill="none" stroke="none"/>
+ 
+<g class="currentLayer" style=""><title>Layer 1</title><g fill="#edde71" id="svg_1" class="" fill-opacity="1">
+  <path d="m80 15c-35.88 0-65 29.12-65 65s29.12 65 65 65 65-29.12 65-65-29.12-65-65-65zm0 10c30.36 0 55 24.64 55 55s-24.64 55-55 55-55-24.64-55-55 24.64-55 55-55z" id="svg_2" fill="#edde71"/>
+  <path d="m89.9984897,51.2507002 a11.24975826,11.25010326 0 1 1 -22.4997563,0 a11.24975826,11.25010326 0 1 1 22.4997563,0 z" id="svg_3" fill="#edde71"/>
+  <path d="m90.665 110.96c-0.069 2.73 1.211 3.5 4.327 3.82l5.008 0.1v5.12h-39.073v-5.12l5.503-0.1c3.291-0.1 4.082-1.38 4.327-3.82v-30.813c0.035-4.879-6.296-4.113-10.757-3.968v-5.074l30.665-1.105" id="svg_4" fill="#edde71"/>
+ </g></g></svg>
