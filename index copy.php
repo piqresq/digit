@@ -1,16 +1,10 @@
 <?php
 
 include_once "PHP/database.php";
-include_once "PHP/product.php";
+
 $db=new Database();
 $conn=$db->getConnection();
-$obj_amount = Product::$product_amount;
-$q= "SELECT products.id, products.sku,products.name,products.price,categories.type,categories.value
-     FROM `products` INNER JOIN `categories` ON categories.product_id=products.id WHERE products.id > $obj_amount";
-$stmt = $conn->prepare($q);
-$stmt->execute();
-$products = $stmt->fetchAll();
-var_dump($products);
+
 
 ?>
 
@@ -23,7 +17,7 @@ var_dump($products);
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="CSS/digit.css">
-    <script src="JS/changeColor.js"></script>
+    <script src="changeColor.js"></script>
     <title>digIT</title>
 </head>
 

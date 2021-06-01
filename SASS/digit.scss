@@ -256,6 +256,9 @@ main.product-add {
         display: flex;
         align-items: center;
         width: 100%;
+        .lbl{
+            padding-right:25px;
+        }
     }
 
     select {
@@ -283,10 +286,6 @@ main.product-add {
         width: 100px;
     }
 
-    label.lbl {
-        padding-right: 20px;
-    }
-
     input {
         flex: 1;
         border: none;
@@ -305,6 +304,20 @@ main.product-add {
             position: relative;
             top: 2px;
             width: 22px;
+            padding-right: 8px;
         }
+
+    }
+
+    .dvd::after {
+        content: "Please provide memory (in MB) of the DVD";
+    }
+
+    .book::after {
+        content: "Please provide weight (in KG) of the book";
+    }
+
+    .furniture::after {
+        content: "Please provide dimensions (in CM) of the furniture";
     }
 }

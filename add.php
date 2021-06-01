@@ -1,10 +1,14 @@
 <?php
 
-include_once "database.php";
+include_once "PHP/database.php";
+include_once "PHP/validator.php";
+include_once "PHP/product.php";
+
+//get connection to database
 
 $db = new Database();
-$pdo=$db->getConnection();
-$productInfo = $db->fetchColumns();
+$pdo = $db->getConnection();
+$error=null;
 
 ?>
 
@@ -23,52 +27,115 @@ $productInfo = $db->fetchColumns();
     <header>
         <h1 class=logo>DIG<span>IT</span></h1>
         <div class="btn-wrap">
-            <form name="submit">
-                <button name="save" class="btn btn-left">SAVE</button>
-            </form>
+            <button name='save' class='btn btn-left' type='submit' form='add'>SAVE</button>
             <button onclick="document.location='index.php'" class="btn">CANCEL</button>
         </div>
     </header>
     <main class="product-add">
-        <form name="submit">
-            <div class="product-container sku-container">
-                <label for="sku">SKU:</label>
-                <input type="text" id="sku" class="sku" name="sku">
-            </div>
-            <div class="product-container name-container">
-                <label for="name">Name:</label>
-                <input type="text" id="name" class="name" name="name">
-            </div>
-            <div class="product-container price-container">
-                <label for="price">Price:</label>
-                <input type="text" id="price" class="price" name="price">
-            </div>
-            <div class="product-container type-container">
-                <select name="type" id="type">
-                    <optgroup label="Select type">
-                    <option value="Disk">Disk</option>
-                    <option value="Book">Book</option>
-                    <option value="Furniture">Furniture</option>
-                    </optgroup>
+        <form id="add" action="" method="POST">
+
+            <?php
+
+            //output product input fields
+
+            $productFields = $db->executeQuery("DESCRIBE products", PDO::FETCH_COLUMN);
+            foreach ($productFields as $name) {
+                if (!str_contains($name, "id")) {
+                    $t = $name == "sku" ? strtoupper($name) : ucfirst($name);
+                    $cur_val = isset($_POST[$name])?$_POST[$name]:'';
+                    echo "
+                    <div class='product-container sku-container'>
+                    <label for='$name'>$t:</label>
+                    <input type='text' id='$name' class='$name' name='$name' value='$cur_val'>
+                    </div>
+                    ";
+                }
+            }
+
+            //create default objects if they don't already exist for creating the form
+
+            dvd::create_default($pdo);
+            book::create_default($pdo);
+            furniture::create_default($pdo);
+
+            //output select with all categories
+
+            $categories = $db->executeQuery("SELECT DISTINCT type FROM categories ");
+            $curr_cat = isset($_COOKIE['current_category']) ? $_COOKIE['current_category'] : 1;
+            echo "
+            <div class='product-container type-container'>
+                    <select name='type' id='type' onchange='getCurrentCategory()'>
+                    <optgroup label='Select type'>";
+            foreach ($categories as $cat) {
+
+                $val = $cat["type"];
+                $sel = $curr_cat == $cat["type"] ? 'selected' : '';
+                $t = $val == "dvd" ? strtoupper($val) : ucfirst($val);
+                echo "<option value='$val' $sel>$t</option>";
+            }
+            echo "
+                </optgroup>
                 </select>
             </div>
-            <div class="product-container type-info-container">
-                <div class="info-container">
-                    <label class="lbl" for="info1">Height:</label>
-                    <input type="text" id="info1" class="info" name="info1">
+            ";
+
+            //output all fields for the selected category
+
+            $fields = $db->executeQuery("SELECT DISTINCT category_field FROM categories WHERE type = ?", null, $curr_cat);
+            echo "<div class='product-container type-info-container'>";
+            foreach ($fields as $id => $field) {
+                $exID = $id + 1;
+                $name = $field['category_field'];
+                $cur_val = isset($_POST[$name])?$_POST[$name]:'';
+                $outname = ucfirst($name);
+                echo "
+                <div class='info-container'>
+                <label class='lbl' for=$name>$outname:</label>
+                <input type='text' id = '$name' class='info' name='$name' value = '$cur_val'>
                 </div>
-                <div class="info-container">
-                    <label class="lbl" for="info2">Width:</label>
-                    <input type="text" id="info2" class="info" name="info2">
-                </div>
-                <div class="info-container">
-                    <label class="lbl" for="info3">Height:</label>
-                    <input type="text" id="info3" class="info" name="info3">
-                </div>
-                <p class="caution"><img src="icons/info.svg" alt="info"> Please provide dimensions of the furniture</p>
+                ";
+            }
+
+            //validate input
+
+            if (isset($_POST['save'])) {
+                $uPost =$_POST;
+                unset($uPost['save']);
+                unset($uPost['type']);
+                $validator = new Validator($uPost);
+                $error = $validator->validate();
+
+                //add to database
+
+                if($error==null){
+                    $_POST=array();
+                    $product = new $curr_cat(array_values($uPost));
+                    $product->add_to_database($pdo);
+                    $error="Product added";
+                    header("Location: index.php");
+                }
+            }
+            $message = is_null($error)?$curr_cat:'';
+
+            //output info box
+
+            echo "
+            <p class='caution $message'><img src='icons/info.svg' alt=''>$error</p>
             </div>
+            ";
+
+            ?>
         </form>
     </main>
+    <script>
+
+        function getCurrentCategory() {
+            const selected = document.getElementById('type').value;
+            document.cookie = `current_category=${selected}`;
+            location.reload();
+        }
+
+    </script>
 </body>
 
 </html>

@@ -1,3 +1,5 @@
+//code taken from the internet, used to change color when hovering on products
+
 const changeColor = (p, c0, c1, l) => {
     let r, g, b, P, f, t, h, i = parseInt, m = Math.round, a = typeof (c1) == "string";
 

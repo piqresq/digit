@@ -286,6 +286,10 @@ main.product-add .info-container {
   width: 100%;
 }
 
+main.product-add .info-container .lbl {
+  padding-right: 25px;
+}
+
 main.product-add select {
   position: relative;
   border: 1px solid #43105D;
@@ -311,10 +315,6 @@ main.product-add label {
   width: 100px;
 }
 
-main.product-add label.lbl {
-  padding-right: 20px;
-}
-
 main.product-add input {
   flex: 1;
   border: none;
@@ -334,5 +334,18 @@ main.product-add p.caution img {
   position: relative;
   top: 2px;
   width: 22px;
+  padding-right: 8px;
+}
+
+main.product-add .dvd::after {
+  content: "Please provide memory (in MB) of the DVD";
+}
+
+main.product-add .book::after {
+  content: "Please provide weight (in KG) of the book";
+}
+
+main.product-add .furniture::after {
+  content: "Please provide dimensions (in CM) of the furniture";
 }
 /*# sourceMappingURL=digit.css.map */
