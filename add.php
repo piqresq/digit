@@ -1,10 +1,19 @@
 <?php
 
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool
+    {
+        return '' === $needle || false !== strpos($haystack, $needle);
+    }
+}
+
 include_once "PHP/database.php";
 include_once "PHP/validator.php";
 include_once "PHP/product.php";
 
 //get connection to database
+
+
 
 $db = new Database();
 $pdo = $db->getConnection();
@@ -114,8 +123,9 @@ $error = null;
                     setcookie($key,'',time()-3600);
                     $product = new $curr_cat(array_values($uPost));
                     $product->add_to_database($pdo);
-                    $error = "Product added";
-                    header("Location: index.php");
+                    $error="Product added!";
+                    echo"<script>document.location = 'index.php'</script>";
+                
                 }
             }
             $message = is_null($error) ? $curr_cat : '';

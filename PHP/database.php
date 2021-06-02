@@ -1,10 +1,10 @@
 <?php
 
 class Database{
-    public $host = "localhost";
-    public $user = "id16879342_root";
-    public $pass = "Abcdef123456!";
-    public $db = "id16879342_digit_db";
+    public $host = "sql113.epizy.com";
+    public $user = "epiz_28776373";
+    public $pass = "ED1Rn6rYiPT4xF";
+    public $db = "epiz_28776373_digit";
     public $charset = "utf8mb4";
     public $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
