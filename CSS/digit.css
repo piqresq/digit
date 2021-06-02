@@ -1,35 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap");
-@media screen and (max-width: 468px) {
-  body header {
-    padding: 0 10px;
-  }
-  main.product-add div.product-container {
-    width: 100%;
-    padding: 0 10px;
-    margin-left: 0;
-    margin-right: 0;
-    border-radius: 0;
-  }
-  div.product-container .type-container {
-    padding-bottom: 10px !important;
-  }
-}
-
-@media screen and (max-width: 420px) {
-  body header {
-    height: 90px;
-  }
-  header h1.logo {
-    font-size: 40px;
-    padding-right: 10px;
-  }
-  header button.btn {
-    font-size: 18px;
-    height: 40px;
-    width: 90px;
-  }
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -83,35 +52,45 @@ header .btn-left {
   margin-right: 6px;
 }
 
-main.container {
+.container {
   padding: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  grid-template-rows: subgrid;
+  grid-template-columns: repeat(6, minmax(250px, 1fr));
   gap: 10px;
 }
 
-main.container .dvd {
+.container .dvd {
   background-color: #92003F;
 }
 
-main.container .book {
+.container .book {
   background-color: white;
 }
 
-main.container .furniture {
+.container .furniture {
   background-color: #EDDE71;
 }
 
-main.container .card {
+.container .empty {
+  color: black;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 2px 2px black;
+  padding: 12px 0;
+  font-size: 26px;
+  text-align: center;
+}
+
+.container .card {
   padding: 25px 15px 22px 15px;
   position: relative;
   font-size: 20px;
   font-weight: 300;
   border-radius: 10px;
+  box-shadow: 2px 2px black;
 }
 
-main.container .card .icon {
+.container .card .icon {
   background-size: 35px 35px;
   position: absolute;
   top: 10px;
@@ -120,19 +99,19 @@ main.container .card .icon {
   height: 35px;
 }
 
-main.container .card .i-dvd {
+.container .card .i-dvd {
   background-image: url("../icons/disc.svg");
 }
 
-main.container .card .i-book {
+.container .card .i-book {
   background-image: url("../icons/book.svg");
 }
 
-main.container .card .i-furniture {
+.container .card .i-furniture {
   background-image: url("../icons/furniture.svg");
 }
 
-main.container .card .empty-checkbox {
+.container .card .empty-checkbox {
   background-image: url("../icons/emptycb.svg");
   position: absolute;
   top: 15px;
@@ -142,7 +121,7 @@ main.container .card .empty-checkbox {
   background-size: 25px 25px;
 }
 
-main.container .card .checkbox {
+.container .card .checkbox {
   background-image: url("../icons/checkbox.svg");
   position: absolute;
   top: 15px;
@@ -152,7 +131,7 @@ main.container .card .checkbox {
   background-size: 25px 25px;
 }
 
-main.container .card .choose {
+.container .card .choose {
   appearance: none;
   position: absolute;
   width: 100%;
@@ -165,13 +144,13 @@ main.container .card .choose {
   z-index: 1;
 }
 
-main.container .card p {
+.container .card p {
   padding-left: 24px;
   margin-bottom: 3px;
   position: relative;
 }
 
-main.container .card .SKU::before {
+.container .card .SKU::before {
   position: absolute;
   content: "";
   background-image: url(../icons/box.svg);
@@ -182,7 +161,7 @@ main.container .card .SKU::before {
   height: 16px;
 }
 
-main.container .card .name::before {
+.container .card .name::before {
   position: absolute;
   content: "";
   background-image: url(../icons/nametag.svg);
@@ -193,7 +172,7 @@ main.container .card .name::before {
   height: 16px;
 }
 
-main.container .card .price::before {
+.container .card .price::before {
   position: absolute;
   content: "";
   background-image: url(../icons/price.svg);
@@ -204,7 +183,7 @@ main.container .card .price::before {
   height: 16px;
 }
 
-main.container .card .memory::before {
+.container .card .memory::before {
   position: absolute;
   content: "";
   background-image: url(../icons/memory.svg);
@@ -215,7 +194,7 @@ main.container .card .memory::before {
   height: 16px;
 }
 
-main.container .card .weight::before {
+.container .card .weight::before {
   position: absolute;
   content: "";
   background-image: url(../icons/weight.svg);
@@ -226,7 +205,7 @@ main.container .card .weight::before {
   height: 16px;
 }
 
-main.container .card .dimensions::before {
+.container .card .dimensions::before {
   position: absolute;
   content: "";
   background-image: url(../icons/dimensions.svg);
@@ -347,5 +326,75 @@ main.product-add .book::after {
 
 main.product-add .furniture::after {
   content: "Please provide dimensions (in CM) of the furniture";
+}
+
+@media screen and (max-width: 1700px) {
+  form.container {
+    grid-template-columns: repeat(5, minmax(250px, 1fr));
+  }
+}
+
+@media screen and (max-width: 1430px) {
+  form.container {
+    grid-template-columns: repeat(4, minmax(250px, 1fr));
+  }
+}
+
+@media screen and (max-width: 1150px) {
+  form.container {
+    grid-template-columns: repeat(3, minmax(250px, 1fr));
+  }
+}
+
+@media screen and (max-width: 850px) {
+  form.container {
+    grid-template-columns: repeat(2, minmax(250px, 1fr));
+  }
+}
+
+@media screen and (max-width: 530px) {
+  form.container {
+    grid-template-columns: repeat(1, minmax(250px, 1fr));
+  }
+}
+
+@media screen and (max-width: 468px) {
+  body header {
+    padding: 0 10px;
+  }
+  main.product-add div.product-container {
+    width: 100%;
+    padding: 20px;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+  }
+  main.product-add div.type-info-container {
+    padding: 20px 10px;
+  }
+  main.product-add div.type-container {
+    height: 60px;
+  }
+  main.product-add input {
+    height: 45px;
+    border-radius: 8px;
+    flex: 1 0;
+    width: 0px;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  body header {
+    height: 90px;
+  }
+  header h1.logo {
+    font-size: 40px;
+    padding-right: 10px;
+  }
+  header button.btn {
+    font-size: 18px;
+    height: 40px;
+    width: 90px;
+  }
 }
 /*# sourceMappingURL=digit.css.map */

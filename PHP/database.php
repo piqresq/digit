@@ -2,9 +2,9 @@
 
 class Database{
     public $host = "localhost";
-    public $user = "root";
-    public $pass = "";
-    public $db = "digit_db";
+    public $user = "id16879342_root";
+    public $pass = "Abcdef123456!";
+    public $db = "id16879342_digit_db";
     public $charset = "utf8mb4";
     public $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

@@ -2,15 +2,13 @@
 
 include_once "PHP/database.php";
 include_once "PHP/product.php";
-$db=new Database();
-$conn=$db->getConnection();
-$obj_amount = Product::$product_amount;
-$q= "SELECT products.id, products.sku,products.name,products.price,categories.type,categories.value
-     FROM `products` INNER JOIN `categories` ON categories.product_id=products.id WHERE products.id > $obj_amount";
-$stmt = $conn->prepare($q);
-$stmt->execute();
-$products = $stmt->fetchAll();
-var_dump($products);
+$db = new Database();
+$conn = $db->getConnection();
+
+//turn this to true and it will auto create 3 objects of each type
+//when visiting the add page. Also creates the objects on reload on that page ;)
+
+Product::$auto_create_products=false;
 
 ?>
 
@@ -32,47 +30,59 @@ var_dump($products);
         <h1 class=logo>DIG<span>IT</span></h1>
         <div class="btn-wrap">
             <button onclick="document.location='add.php'" class="btn btn-left">ADD</button>
-            <form>
-                <button name="delete" class="btn">DELETE</button>
-            </form>
+            <button name=" delete" class="btn" form="cb-form" type="submit">DELETE</button>
         </div>
     </header>
-    <main class="container">
-        <div class="card dvd" id="card-1">
-            <input type="checkbox" id="field-1" class="choose" name="card-1" value=" " onclick="onClick(this.id)"
-                onmouseover="hover(this.id)" onmouseout="leave(this.id)">
-            <i class="icon i-dvd" id="icon-1"></i>
-            <p class="SKU">JCV200123</p>
-            <p class="name">Acme disk</p>
-            <p class="price">2.00</p>
-            <p class="memory">700MB</p>
-        </div>
-        <div class="card book" id="card-2">
-            <input type="checkbox" id="field-2" class="choose" name="card-2" value=" " onclick="onClick(this.id)"
-                onmouseover="hover(this.id)" onmouseout="leave(this.id)">
-            <i class="icon i-book" id="icon-2"></i>
-            <p class="SKU">JCV200123</p>
-            <p class="name">Acme disk</p>
-            <p class="price">2.00</p>
-            <p class="weight">700MB</p>
-        </div>
-        <div class="card furniture" id="card-3">
-            <input type="checkbox" id="field-3" class="choose" name="card-3" value=" " onclick="onClick(this.id)"
-                onmouseover="hover(this.id)" onmouseout="leave(this.id)">
-            <i class="icon i-furniture" id="icon-3"></i>
-            <p class="SKU">JCV200123</p>
-            <p class="name">Acme disk</p>
-            <p class="price">2.00</p>
-            <p class="dimensions">700MB</p>
-        </div>
+    <main>
+        <form class="container" action="" method="POST" id="cb-form">
+
+            <?php
+
+            //get all items from database
+
+            $obj_amount = Product::get_id_of_first_element($conn);
+            $q = "SELECT  products.id, products.sku,products.name,products.price,categories.type, GROUP_CONCAT(categories.value) AS value
+            FROM `products` INNER JOIN `categories` ON categories.product_id=products.id WHERE products.id >= $obj_amount GROUP BY products.id";
+            $products =  $db->executeQuery($q);
+
+
+            //display all items
+
+            foreach ($products as $product) {
+                $class_name = $product['type'];
+                $class_name::display($product);
+            }
+
+            //delete selected items
+
+            $cb_id = [];
+
+            if (isset($_POST['delete']) && count($_POST) > 1) {
+                foreach ($_POST as $id => $element) {
+                    if ($element === 'on') {
+                        array_push($cb_id, '\'' . explode('-', $id)[1] . '\'');
+                    }
+                }
+                $id_string = implode(', ', $cb_id);
+                Product::delete_from_database($conn, $id_string);
+                echo "<script>document.location='index.php';</script>";
+            } else if (empty($products)) {
+                echo "<div class='empty'>No items to display :(</div>";
+            }
+
+            ?>
+
+        </form>
     </main>
 
     <script>
         let originalColor;
 
         function onClick(id) {
-            let icon = document.getElementById("icon-" + id[id.length - 1]),
-            card = document.getElementById("card-" + id[id.length - 1]);
+            let
+                idnum = id.split('-')[1];
+            icon = document.getElementById("icon-" + idnum),
+                card = document.getElementById("card-" + idnum);
             if (!icon.classList.contains("checkbox")) {
                 icon.classList.remove("empty-checkbox");
                 icon.classList.add("checkbox");
@@ -82,9 +92,11 @@ var_dump($products);
             }
 
         }
+
         function hover(id) {
-            let card = document.getElementById("card-" + id[id.length - 1]),
-                icon = document.getElementById("icon-" + id[id.length - 1]),
+            let idnum = id.split('-')[1];
+            card = document.getElementById("card-" + idnum),
+                icon = document.getElementById("icon-" + idnum),
                 color = getComputedStyle(card).getPropertyValue("background-color");
             originalColor = color;
             card.style.backgroundColor = changeColor(-0.2, color);
@@ -95,14 +107,20 @@ var_dump($products);
         }
 
         function leave(id) {
-            let card = document.getElementById("card-" + id[id.length - 1]),
-                icon = document.getElementById("icon-" + id[id.length - 1]),
+            let
+                idnum = id.split('-')[1];
+            card = document.getElementById("card-" + idnum),
+                icon = document.getElementById("icon-" + idnum),
                 color = getComputedStyle(card).getPropertyValue("background-color");
             card.style.backgroundColor = originalColor;
             if (!icon.classList.contains("checkbox")) {
                 icon.classList.remove("empty-checkbox");
                 icon.classList.add("icon");
             }
+        }
+
+        function onDelete() {
+
         }
     </script>
 

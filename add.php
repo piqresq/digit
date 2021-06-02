@@ -8,7 +8,7 @@ include_once "PHP/product.php";
 
 $db = new Database();
 $pdo = $db->getConnection();
-$error=null;
+$error = null;
 
 ?>
 
@@ -42,7 +42,7 @@ $error=null;
             foreach ($productFields as $name) {
                 if (!str_contains($name, "id")) {
                     $t = $name == "sku" ? strtoupper($name) : ucfirst($name);
-                    $cur_val = isset($_POST[$name])?$_POST[$name]:'';
+                    $cur_val = isset($_POST[$name]) ? $_POST[$name] : (isset($_COOKIE[$name]) ? $_COOKIE[$name] : '');
                     echo "
                     <div class='product-container sku-container'>
                     <label for='$name'>$t:</label>
@@ -61,10 +61,11 @@ $error=null;
             //output select with all categories
 
             $categories = $db->executeQuery("SELECT DISTINCT type FROM categories ");
-            $curr_cat = isset($_COOKIE['current_category']) ? $_COOKIE['current_category'] : 1;
+            $curr_cat = isset($_COOKIE['current_category']) ? $_COOKIE['current_category'] : 'dvd';
+            $is_post_empty = count($_POST) == 0 ? true : false;
             echo "
             <div class='product-container type-container'>
-                    <select name='type' id='type' onchange='getCurrentCategory()'>
+                    <select name='type' id='type' onchange='getCurrentCategory($is_post_empty)'>
                     <optgroup label='Select type'>";
             foreach ($categories as $cat) {
 
@@ -86,7 +87,7 @@ $error=null;
             foreach ($fields as $id => $field) {
                 $exID = $id + 1;
                 $name = $field['category_field'];
-                $cur_val = isset($_POST[$name])?$_POST[$name]:'';
+                $cur_val = isset($_POST[$name]) ? $_POST[$name] : '';
                 $outname = ucfirst($name);
                 echo "
                 <div class='info-container'>
@@ -99,7 +100,7 @@ $error=null;
             //validate input
 
             if (isset($_POST['save'])) {
-                $uPost =$_POST;
+                $uPost = $_POST;
                 unset($uPost['save']);
                 unset($uPost['type']);
                 $validator = new Validator($uPost);
@@ -107,15 +108,17 @@ $error=null;
 
                 //add to database
 
-                if($error==null){
-                    $_POST=array();
+                if ($error == null) {
+                    $_POST = array();
+                    foreach($_COOKIE as $key => $cookie)
+                    setcookie($key,'',time()-3600);
                     $product = new $curr_cat(array_values($uPost));
                     $product->add_to_database($pdo);
-                    $error="Product added";
+                    $error = "Product added";
                     header("Location: index.php");
                 }
             }
-            $message = is_null($error)?$curr_cat:'';
+            $message = is_null($error) ? $curr_cat : '';
 
             //output info box
 
@@ -129,12 +132,16 @@ $error=null;
     </main>
     <script>
 
-        function getCurrentCategory() {
+        //preserve the current category and input values using a cookie on category change
+
+        function getCurrentCategory(isPostEmpty) {
             const selected = document.getElementById('type').value;
             document.cookie = `current_category=${selected}`;
+            elements = document.getElementsByTagName('input');
+            for (i = 0; i < elements.length; i++)
+                document.cookie = `${elements[i].name}=${elements[i].value}`;
             location.reload();
         }
-
     </script>
 </body>
 
