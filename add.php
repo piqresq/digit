@@ -45,6 +45,12 @@ $error = null;
 
             <?php
 
+            //create default objects if they don't already exist for creating the form
+
+            dvd::create_default($pdo);
+            book::create_default($pdo);
+            furniture::create_default($pdo);
+
             //output product input fields
 
             $productFields = $db->executeQuery("DESCRIBE products", PDO::FETCH_COLUMN);
@@ -60,12 +66,6 @@ $error = null;
                     ";
                 }
             }
-
-            //create default objects if they don't already exist for creating the form
-
-            dvd::create_default($pdo);
-            book::create_default($pdo);
-            furniture::create_default($pdo);
 
             //output select with all categories
 
@@ -138,6 +138,7 @@ $error = null;
             ";
 
             ?>
+            
         </form>
     </main>
     <script>
@@ -152,6 +153,7 @@ $error = null;
                 document.cookie = `${elements[i].name}=${elements[i].value}`;
             location.reload();
         }
+        
     </script>
 </body>
 

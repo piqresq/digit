@@ -76,6 +76,7 @@ Product::$auto_create_products=false;
     </main>
 
     <script>
+
         let originalColor;
 
         function onClick(id) {
@@ -117,10 +118,6 @@ Product::$auto_create_products=false;
                 icon.classList.remove("empty-checkbox");
                 icon.classList.add("icon");
             }
-        }
-
-        function onDelete() {
-
         }
     </script>
 
