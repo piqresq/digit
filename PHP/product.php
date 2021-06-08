@@ -1,6 +1,10 @@
 <?php
 
-abstract class Product{
+include_once "validator.php";
+include_once "output.php";
+
+abstract class Product
+{
 
     protected $SKU, $name, $price;
     protected static $product_amount = 3;
@@ -13,64 +17,92 @@ abstract class Product{
         $this->price = $data[2];
     }
 
-    static function get_id_of_first_element($conn){
-        $q= "SELECT MIN(id) AS id FROM `products`";
-        $stmt = $conn->prepare($q);
-        $stmt->execute();
-        return $stmt->fetchAll()[0]["id"] + self::$product_amount;
+    static function create_defaults($db)
+    {
+        dvd::create_default($db);
+        book::create_default($db);
+        furniture::create_default($db);
     }
 
-    public static function delete_from_database($conn, $idx){
-        $q = "DELETE FROM `categories` WHERE product_id IN ($idx)";
-        $stmt = $conn->prepare($q);
-        $stmt->execute();
-        $q = "DELETE FROM `products` WHERE id IN ($idx)";
-        $stmt = $conn->prepare($q);
-        $stmt->execute();
-        
+    static function get_data()
+    {
+        $uPost = $_POST;
+        unset($uPost['save']);
+        unset($uPost['type']);
+        return $uPost;
+    }
+    static function get_id_of_first_element($db)
+    {
+        return $db->fetchQuery("SELECT MIN(id) AS id FROM `products`")[0]["id"] + self::$product_amount;
     }
 
-    abstract function add_to_database($conn);
+    public static function delete_from_database($db)
+    {
+        $cb_id = [];
+
+        if (isset($_POST['delete']) && count($_POST) > 1) {
+            foreach ($_POST as $id => $element) {
+                if ($element === 'on') {
+                    array_push($cb_id, '\'' . explode('-', $id)[1] . '\'');
+                }
+            }
+            $id_string = implode(', ', $cb_id);
+            $db->executeQuery("DELETE FROM `categories` WHERE product_id IN ($id_string)");
+            $db->executeQuery("DELETE FROM `products` WHERE id IN ($id_string)");
+            echo "<script>document.location='index.php';</script>";
+        } else if (!Output::$products_exist) {
+            echo "<div class='empty'>No items to display :(</div>";
+        }
+    }
+    public static function create_product($db)
+    {
+        $validator = new Validator();
+        $validator->validate();
+        if (Validator::$error === null && isset($_POST['save'])) {
+            $category = isset($_COOKIE['current_category']) ? $_COOKIE['current_category'] : 'dvd';
+            $product = new $category(array_values(self::get_data()));
+            $product->add_to_database($db);
+            $_POST = array();
+            foreach ($_COOKIE as $key => $cookie)
+                setcookie($key, '', time() - 3600);
+            Validator::$error = "Product added!";
+            echo "<script>document.location = 'index.php'</script>";
+        }
+    }
+
+    abstract function add_to_database($db);
 
     abstract static function display($data);
 
-    abstract static function create_default($conn);
+    abstract static function create_default($db);
 }
 
-class dvd extends Product{
+class dvd extends Product
+{
     private $memory;
-    private static $field_name ='memory';
+    private static $field_name = 'memory';
     private static $cat_name = 'dvd';
     function __construct($data)
     {
-        $this->memory=$data[3];
+        $this->memory = $data[3];
         parent::__construct($data);
     }
-    function add_to_database($conn)
+    function add_to_database($db)
     {
-        $q="INSERT INTO products (`sku`,`name`,`price`) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($q);
-        $stmt->execute([$this->SKU,$this->name,$this->price]);
-        $id = $conn->lastInsertId();
-        $q="INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES (?,?,?,?)";
-        $stmt= $conn->prepare($q);
-        $stmt->execute([self::$cat_name,self::$field_name,$this->memory,$id]);
+        $db->executeQuery("INSERT INTO products (`sku`,`name`,`price`) VALUES (?, ?, ?)", array($this->SKU, $this->name, $this->price));
+        $id = $db->pdo->lastInsertId();
+        $db->executeQuery("INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES (?,?,?,?)", array(self::$cat_name, self::$field_name, $this->memory, $id));
     }
-    static function create_default($conn)
+    static function create_default($db)
     {
+
         $cat = self::$cat_name;
         $field = self::$field_name;
-        $find = $conn->prepare("SELECT name FROM products WHERE name='def_$cat'");
-        $find->execute();
-        $res = $find->fetchAll();
-        if (empty($res)||self::$auto_create_products==true) {
-            $q = "INSERT INTO products (`sku`,`name`,`price`) VALUES ('def','def_$cat',0)";
-            $stmt = $conn->prepare($q);
-            $stmt->execute();
-            $id = $conn->lastInsertId();
-            $q = "INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES ('$cat','$field','0','$id')";
-            $stmt = $conn->prepare($q);
-            $stmt->execute();
+        $res = $db->fetchQuery("SELECT name FROM products WHERE name='def_$cat'");
+        if (empty($res) || self::$auto_create_products == true) {
+            $db->executeQuery("INSERT INTO products (`sku`,`name`,`price`) VALUES ('def','def_$cat',0)");
+            $id = $db->pdo->lastInsertId();
+            $db->executeQuery("INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES ('$cat','$field','0','$id')");
         }
     }
     static function display($data)
@@ -107,32 +139,22 @@ class book extends Product
         $this->weight = $data[3];
         parent::__construct($data);
     }
-    static function create_default($conn)
+    static function create_default($db)
     {
         $cat = self::$cat_name;
         $field = self::$field_name;
-        $find = $conn->prepare("SELECT name FROM products WHERE name='def_$cat'");
-        $find->execute();
-        $res = $find->fetchAll();
+        $res = $db->fetchQuery("SELECT name FROM products WHERE name='def_$cat'");
         if (empty($res) || self::$auto_create_products == true) {
-            $q = "INSERT INTO products (`sku`,`name`,`price`) VALUES ('def','def_$cat',0)";
-            $stmt = $conn->prepare($q);
-            $stmt->execute();
-            $id = $conn->lastInsertId();
-            $q = "INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES ('$cat','$field','0','$id')";
-            $stmt = $conn->prepare($q);
-            $stmt->execute();
+            $db->executeQuery("INSERT INTO products (`sku`,`name`,`price`) VALUES ('def','def_$cat',0)");
+            $id = $db->pdo->lastInsertId();
+            $db->executeQuery("INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES ('$cat','$field','0','$id')");
         }
     }
-    function add_to_database($conn)
+    function add_to_database($db)
     {
-        $q = "INSERT INTO products (`sku`,`name`,`price`) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($q);
-        $stmt->execute([$this->SKU, $this->name, $this->price]);
-        $id = $conn->lastInsertId();
-        $q = "INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES (?,?,?,?)";
-        $stmt = $conn->prepare($q);
-        $stmt->execute([self::$cat_name, self::$field_name, $this->weight, $id]);
+        $db->executeQuery("INSERT INTO products (`sku`,`name`,`price`) VALUES (?, ?, ?)", [$this->SKU, $this->name, $this->price]);
+        $id = $db->pdo->lastInsertId();
+        $db->executeQuery("INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES (?,?,?,?)", [self::$cat_name, self::$field_name, $this->weight, $id]);
     }
     static function display($data)
     {
@@ -142,7 +164,7 @@ class book extends Product
         $sku = $data['sku'];
         $name = $data['name'];
         $price = $data['price'];
-        $price = !strpos($price, '.')?$price.'.00':(strlen(explode('.',$price)[1])==1?$price.'0':$price);
+        $price = !strpos($price, '.') ? $price . '.00' : (strlen(explode('.', $price)[1]) == 1 ? $price . '0' : $price);
         $weight = $data['value'];
         echo "
         <div class='card $cat' id='card-$id'>
@@ -175,40 +197,36 @@ class furniture extends Product
         $this->length = $data[5];
         parent::__construct($data);
     }
-    static function create_default($conn)
+    static function create_default($db)
     {
         $cat = self::$cat_name;
-        $find = $conn->prepare("SELECT name FROM products WHERE name='def_$cat'");
-        $find->execute();
-        $res = $find->fetchAll();
+        $res = $db->fetchQuery("SELECT name FROM products WHERE name='def_$cat'");
         if (empty($res) || self::$auto_create_products == true) {
-            $q = "INSERT INTO products (`sku`,`name`,`price`) VALUES ('def','def_$cat',0)";
-            $stmt = $conn->prepare($q);
-            $stmt->execute();
-            $id = $conn->lastInsertId();
+            $db->executeQuery("INSERT INTO products (`sku`,`name`,`price`) VALUES ('def','def_$cat',0)");
+            $id = $db->pdo->lastInsertId();
             $values = array(
                 array($cat, self::$field_name_1, 0, $id),
                 array($cat, self::$field_name_2, 0, $id),
                 array($cat, self::$field_name_3, 0, $id)
             );
             $q = "INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES (?,?,?,?)";
-            $stmt = $conn->prepare($q);
-            foreach($values as $row)
+            $stmt = $db->pdo->prepare($q);
+            foreach ($values as $row)
                 $stmt->execute($row);
         }
     }
-    function add_to_database($conn)
+    function add_to_database($db)
     {
-        $q = "INSERT INTO products (`sku`,`name`,`price`) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($q);
-        $stmt->execute([$this->SKU, $this->name, $this->price]);
-        $id = $conn->lastInsertId();
-        $values = array(array(self::$cat_name, self::$field_name_1, $this->height, $id),
-                        array(self::$cat_name, self::$field_name_2, $this->width, $id), 
-                        array(self::$cat_name, self::$field_name_3, $this->length, $id));
+        $db->executeQuery("INSERT INTO products (`sku`,`name`,`price`) VALUES (?, ?, ?)", [$this->SKU, $this->name, $this->price]);
+        $id = $db->pdo->lastInsertId();
+        $values = array(
+            array(self::$cat_name, self::$field_name_1, $this->height, $id),
+            array(self::$cat_name, self::$field_name_2, $this->width, $id),
+            array(self::$cat_name, self::$field_name_3, $this->length, $id)
+        );
         $q = "INSERT INTO categories (`type`,`category_field`,`value`,`product_id`) VALUES (?,?,?,?)";
-        $stmt = $conn->prepare($q);
-        foreach($values as $row){
+        $stmt = $db->pdo->prepare($q);
+        foreach ($values as $row) {
             $stmt->execute($row);
         }
     }
@@ -221,7 +239,7 @@ class furniture extends Product
         $name = $data['name'];
         $price = $data['price'];
         $price = !strpos($price, '.') ? $price . '.00' : (strlen(explode('.', $price)[1]) == 1 ? $price . '0' : $price);
-        list($height,$width,$length)=explode(',',$data['value']);
+        list($height, $width, $length) = explode(',', $data['value']);
         echo "
         <div class='card $cat' id='card-$id'>
             <input type='checkbox' id='field-$id' class='choose' name='card-$id' onclick='onClick(this.id)'
@@ -235,5 +253,3 @@ class furniture extends Product
         ";
     }
 }
-
-?>
